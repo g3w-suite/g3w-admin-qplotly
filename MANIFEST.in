@@ -1,0 +1,6 @@
+include README.md
+recursive-include qplotly/static *
+recursive-include qplotly/templates *
+recursive-include qplotly/locale *
+recursive-include qplotly/vendor/DataPlotly/core/plot_types/icons *
+prune qplotly/tests
