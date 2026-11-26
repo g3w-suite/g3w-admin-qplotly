@@ -19,7 +19,10 @@ class TestRequestHandler(SimpleHTTPRequestHandler):
         return super().translate_path(path)
 
 
-def before_all(context):
+def before_scenario(context, scenario):
+    if "browser" not in scenario.effective_tags:
+        return
+
     handler = partial(TestRequestHandler, directory=str(ADMIN_ROOT))
     server = ThreadingHTTPServer(("127.0.0.1", 0), handler)
     thread = Thread(target=server.serve_forever, daemon=True)
@@ -38,9 +41,6 @@ def before_all(context):
         headless=context.config.userdata.get("headless", "true").lower() == "true"
     )
     context.add_cleanup(context.browser.close)
-
-
-def before_scenario(context, scenario):
     browser_context = context.browser.new_context()
     context.add_cleanup(browser_context.close)
     context.page = browser_context.new_page()
@@ -55,4 +55,5 @@ def before_scenario(context, scenario):
 
 
 def after_scenario(context, scenario):
-    assert not context.errors, "\n".join(context.errors)
+    if "browser" in scenario.effective_tags:
+        assert not context.errors, "\n".join(context.errors)
