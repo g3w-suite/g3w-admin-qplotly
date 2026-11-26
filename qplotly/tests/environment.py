@@ -19,8 +19,11 @@ class TestRequestHandler(SimpleHTTPRequestHandler):
         return super().translate_path(path)
 
 
-def before_scenario(context, scenario):
-    if "browser" not in scenario.effective_tags:
+def before_feature(context, feature):
+    if not any(
+        "browser" in scenario.effective_tags and scenario.should_run(context.config)
+        for scenario in feature.walk_scenarios()
+    ):
         return
 
     handler = partial(TestRequestHandler, directory=str(ADMIN_ROOT))
@@ -41,6 +44,11 @@ def before_scenario(context, scenario):
         headless=context.config.userdata.get("headless", "true").lower() == "true"
     )
     context.add_cleanup(context.browser.close)
+
+
+def before_scenario(context, scenario):
+    if "browser" not in scenario.effective_tags:
+        return
     browser_context = context.browser.new_context()
     context.add_cleanup(browser_context.close)
     context.page = browser_context.new_page()
